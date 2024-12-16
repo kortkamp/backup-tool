@@ -5,15 +5,12 @@ import {
 } from '@aws-sdk/client-s3';
 import fs from 'fs';
 import { resolve } from 'path';
-import mime from 'mime';
-
-
-// import { logger } from '@shared/utils/logger';
 
 import { IDeleteFileDTO } from '../dtos/IDeleteFileDTO';
 import { ISaveFileDTO } from '../dtos/ISaveFileDTO';
 import IStorageProvider from '../models/IStorageProvider';
 import { configs } from '../../../config/upload';
+import { logger } from '../../../utils/logger';
 
 class S3StorageProvider implements IStorageProvider {
   private client: S3Client;
@@ -29,13 +26,7 @@ class S3StorageProvider implements IStorageProvider {
 
     const fileContent = await fs.promises.readFile(originalPath);
 
-    const contentType = mime.getType(originalPath);
-
-    if (!contentType) {
-      throw new Error('S3_Service: File not found ');
-    }
-
-    const bucket = upload.containerName;
+    const bucket = process.env.AWS_S3_BUCKET;
 
     try {
       await this.client.send(
@@ -44,15 +35,14 @@ class S3StorageProvider implements IStorageProvider {
           Key: tmpFile,
           ACL: 'private',
           Body: fileContent,
-          ContentType: contentType,
         }),
       );
     } catch (error) {
-      // logger.error(error);
+      logger.error(error);
       throw new Error(error);
     }
 
-    await fs.promises.unlink(originalPath);
+    logger.debug('file uploaded successfully');
 
     return tmpFile;
   }
@@ -67,7 +57,7 @@ class S3StorageProvider implements IStorageProvider {
         new DeleteObjectCommand({ Bucket: bucket, Key: file }),
       );
     } catch (error) {
-      // logger.error(error);
+      logger.error(error);
       throw new Error(error);
     }
   }
