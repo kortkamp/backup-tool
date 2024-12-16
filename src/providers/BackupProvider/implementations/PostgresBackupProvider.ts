@@ -5,6 +5,7 @@ import { resolve } from 'path';
 
 import { exec } from 'child_process'
 import { configs } from '../../../config/upload';
+import { logger } from '../../../utils/logger';
 
 class PostgresBackupProvider implements IBackupProvider {
 
@@ -14,7 +15,8 @@ class PostgresBackupProvider implements IBackupProvider {
     const connectionString = process.env.DATABASE_URL;
 
     if(!connectionString) {
-      throw new Error('DATABASE_URL is missing in env')
+      logger.error('DATABASE_URL is missing in env');
+      process.exit()
     }
     this.connectionUrl = process.env.DATABASE_URL
   }
@@ -25,7 +27,9 @@ class PostgresBackupProvider implements IBackupProvider {
 
     const {upload: {tmpFolder,filePrefix}} = configs();
 
-    const backupFile = resolve(tmpFolder, `${filePrefix}_${date}.tar`);
+    const fileName = `${filePrefix}_${date}.tar`;
+
+    const backupFile = resolve(tmpFolder, fileName);
 
 
     return new Promise((resolve, reject) => {
@@ -38,13 +42,16 @@ class PostgresBackupProvider implements IBackupProvider {
           reject(stderr)
         }
 
-        resolve(stdout);
+        resolve(fileName);
       });
     })
   }
 
   async restore(fileName: string): Promise<void> {
     throw new Error("Method not implemented.");
+
+    //pg_restore -cC -d t25_dev bootstrap.tar
+    //https://soshace.com/2020/11/20/automated-postgresql-backups-with-nodejs-and-bash/
   }
 
 }
