@@ -34,7 +34,6 @@ class SesNotificationsProvider implements INotificationsProvider {
 
     try {
       const result = await this.client.send(sendMailCommand);
-      logger.debug(JSON.stringify( sendMailCommand));
       logger.debug(result);
     } catch (err) {
       logger.error('Ses', err);
