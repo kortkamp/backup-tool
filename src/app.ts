@@ -39,7 +39,7 @@ run().then(() => {
 }).catch((error) => {
   logger.error(error);
   notificationsProvider.sendNotification({
-       message: `Backup failed for ${process.env.APP_NAME}. Error: ${error.message}`  
+       message: `Backup failed for ${process.env.APP_NAME}.`  
   })
   logger.debug('Failure notification sent!')
 });
